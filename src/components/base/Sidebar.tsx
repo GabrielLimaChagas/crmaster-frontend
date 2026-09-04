@@ -41,10 +41,10 @@ const Sidebar: React.FC<SidebarProps> = ({ activeMenu, onChange }) => {
         <img src={Logo} alt="logo" />
       </Col>
       <Col className="h-full">
-        {MENU_ITEMS.map(props => <SidebarItemMenu key={props.id} {...props} active={activeMenu === props.label} onClick={() => onChange(props.label)} />)}
+        {MENU_ITEMS.map(props => <SidebarItemMenu key={props.id} {...props} active={activeMenu === props.label} onClick={() => onChange?.(props.label)} />)}
       </Col>
       <Col className="pb-2">
-        <SidebarItemMenu icon={UserCircleIcon} label="Sua Área" active={activeMenu === "Sua Área"} onClick={() => onChange("Sua Área")} />
+        <SidebarItemMenu icon={UserCircleIcon} label="Sua Área" active={activeMenu === "Sua Área"} onClick={() => onChange?.("Sua Área")} />
       </Col>
     </Col>
   )
