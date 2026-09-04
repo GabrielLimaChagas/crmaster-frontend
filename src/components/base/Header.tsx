@@ -6,7 +6,7 @@ interface HeaderProps {
 }
 const Header: React.FC<HeaderProps> = ({ title, rightAttachment }) => {
   return (
-    <Row className="bg-white w-full h-12 justify-between items-center px-4 shadow">
+    <Row className="bg-white w-full h-12 justify-between items-center px-4 shadow-md">
       <span>{title}</span>
       {rightAttachment}
     </Row>

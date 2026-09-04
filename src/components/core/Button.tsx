@@ -1,17 +1,18 @@
-import type { HTMLAttributes } from "react";
+import type { ButtonHTMLAttributes } from "react";
+
+type ButtonVariants = "primary" | "danger" | "secondary";
 
 interface ButtonProps {
   label?: string;
+  variant?: ButtonVariants;
   leftAttachment?: React.ReactNode;
 }
 
-const Button: React.FC<HTMLAttributes<HTMLButtonElement> & ButtonProps> = ({
-  label,
-  leftAttachment,
-  ...props
-}) => {
+const Button: React.FC<
+  ButtonHTMLAttributes<HTMLButtonElement> & ButtonProps
+> = ({ label, leftAttachment, variant = "secondary", ...props }) => {
   return (
-    <button {...props} className="">
+    <button {...props} className={`min-h-8 transition-colors cursor-pointer rounded-lg outline-none px-4 ${VARIANT_CLASSNAMES[variant]}`}>
       {leftAttachment}
       {label}
     </button>
@@ -19,3 +20,9 @@ const Button: React.FC<HTMLAttributes<HTMLButtonElement> & ButtonProps> = ({
 };
 
 export default Button;
+
+const VARIANT_CLASSNAMES: Record<ButtonVariants, string> = {
+  primary: "bg-blue-600 hover:bg-blue-500 active:bg-blue-600 text-white",
+  secondary: "",
+  danger: "",
+} as const;
