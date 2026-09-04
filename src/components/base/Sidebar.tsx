@@ -36,7 +36,7 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ activeMenu, onChange }) => {
 
   return (
-    <Col className="w-50 bg-white px-2">
+    <Col className="w-50 bg-white px-2 border-r border-neutral-200">
       <Col className="p-4">
         <img src={Logo} alt="logo" />
       </Col>
