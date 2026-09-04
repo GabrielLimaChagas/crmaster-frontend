@@ -5,7 +5,7 @@ import Row from "../components/core/Row"
 const RootLayout = () => {
   return (
     <Row className="flex bg-neutral-100 min-h-screen">
-      <Sidebar activeMenu={"1"} />
+      <Sidebar />
       <Outlet />
     </Row>
   )

@@ -4,12 +4,7 @@ import Dashboard from "./pages/Dashboard"
 import RootLayout from "./pages/RootLayout"
 import ProductList from "./pages/ProductList"
 import ProductForm from "./pages/ProductForm"
-
-const NAVIGATION_ROUTES = {
-  DASHBOARD: "dashboard",
-  NEW_PRODUCT: "products/new",
-  PRODUCTS: "products"
-} as const
+import { NAVIGATION_ROUTES } from "./consts/navigationRoutes"
 
 function App() {
   return (
