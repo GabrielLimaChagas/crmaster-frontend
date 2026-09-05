@@ -20,7 +20,11 @@ function Form<T extends FieldValues>({
 }: FormProps<T>) {
   return (
     <FormProvider {...methods}>
-      <form className={className} onSubmit={methods.handleSubmit(onSubmit)}>{children}</form>
+      <form 
+        className={className} 
+        onSubmit={methods.handleSubmit(onSubmit)}>
+          {children}
+      </form>
     </FormProvider>
   );
 }

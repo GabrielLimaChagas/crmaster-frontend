@@ -19,7 +19,9 @@ const ProductForm = () => {
     console.log(data);
   return (
     <Col className="w-full">
-      <Header title="Produtos" />
+      <Header
+        title="Produtos"
+      />
       <Col className="w-full p-2">
         <Col className="bg-white p-4 rounded-lg shadow-md">
           <Form
