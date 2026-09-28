@@ -10,9 +10,9 @@ interface ButtonProps {
 
 const Button: React.FC<
   ButtonHTMLAttributes<HTMLButtonElement> & ButtonProps
-> = ({ label, leftAttachment, variant = "secondary", ...props }) => {
+> = ({ label, leftAttachment, variant = "secondary", className, ...props }) => {
   return (
-    <button {...props} className={`min-h-8 transition-colors cursor-pointer rounded-lg outline-none px-4 ${VARIANT_CLASSNAMES[variant]}`}>
+    <button {...props} className={`min-h-8 transition-colors cursor-pointer rounded-lg outline-none px-4 ${VARIANT_CLASSNAMES[variant]} ${className}`}>
       {leftAttachment}
       {label}
     </button>

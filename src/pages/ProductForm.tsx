@@ -1,7 +1,7 @@
 import { type SubmitHandler, useForm } from "react-hook-form";
 import Col from "../components/core/Col";
 import Form from "../components/core/Form";
-import TextInput from "../components/core/TextInput";
+import Input from "../components/core/Input";
 import Button from "../components/core/Button";
 import Row from "../components/core/Row";
 import Header from "../components/base/Header";
@@ -29,9 +29,9 @@ const ProductForm = () => {
             methods={methods}
             onSubmit={onSubmit}
           >
-            <TextInput name="name" label="Nome" />
-            <TextInput name="price" label="Preço" />
-            <TextInput name="description" label="Descrição" />
+            <Input name="name" label="Nome" />
+            <Input name="price" label="Preço" />
+            <Input name="description" label="Descrição" />
             <Row>
               <Button
                 type="submit"
