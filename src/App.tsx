@@ -11,6 +11,7 @@ import PreSaleForm from "./pages/PreSaleForm";
 import SaleList from "./pages/SaleList";
 import SaleForm from "./pages/SaleForm";
 import Profile from "./pages/Profile";
+import NotificationList from "./pages/NotificationList";
 import NewCompany from "./pages/NewCompany";
 
 function App() {
@@ -47,6 +48,10 @@ function App() {
         <Route path={NAVIGATION_ROUTES.NEW_SALE} element={<SaleForm />} />
         <Route path={NAVIGATION_ROUTES.EDIT_SALE} element={<SaleForm />} />
         <Route path={NAVIGATION_ROUTES.PROFILE} element={<Profile />} />
+        <Route
+          path={NAVIGATION_ROUTES.NOTIFICATIONS}
+          element={<NotificationList />}
+        />
       </Route>
       <Route
         path={NAVIGATION_ROUTES.ADMIN_NEW_COMPANY}

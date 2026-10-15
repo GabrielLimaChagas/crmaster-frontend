@@ -216,4 +216,40 @@ export const profileService = {
     }),
 };
 
+export interface NotificationItem {
+  id: string | number;
+  title?: string;
+  content: string;
+  createdAt: string; // e.g. "27/08" ou ISO
+  date?: string;
+}
+
+export interface NotificationFormData {
+  title?: string;
+  content: string;
+  createdAt?: string;
+}
+
+export const notificationService = {
+  getAll: () => request<NotificationItem[]>("/notifications"),
+  getById: (id: string | number) =>
+    request<NotificationItem>(`/notifications/${id}`),
+  create: (data: NotificationFormData) =>
+    request<{ success: boolean; notification: NotificationItem }>(
+      "/notifications",
+      {
+        method: "POST",
+        body: JSON.stringify(data),
+      },
+    ),
+  delete: (id: string | number) =>
+    request<{ success: boolean; message?: string }>(`/notifications/${id}`, {
+      method: "DELETE",
+    }),
+  clearAll: () =>
+    request<{ success: boolean; message?: string }>("/notifications/clear", {
+      method: "DELETE",
+    }),
+};
+
 
