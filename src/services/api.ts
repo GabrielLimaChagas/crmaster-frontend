@@ -201,3 +201,19 @@ export const saleService = {
     }),
 };
 
+export interface ProfileData {
+  userName: string;
+  companyName: string;
+  email?: string;
+}
+
+export const profileService = {
+  get: () => request<ProfileData>("/profile"),
+  update: (data: ProfileData) =>
+    request<{ success: boolean; profile: ProfileData }>("/profile", {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
+};
+
+

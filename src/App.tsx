@@ -10,6 +10,7 @@ import PreSaleList from "./pages/PreSaleList";
 import PreSaleForm from "./pages/PreSaleForm";
 import SaleList from "./pages/SaleList";
 import SaleForm from "./pages/SaleForm";
+import Profile from "./pages/Profile";
 
 function App() {
   return (
@@ -52,6 +53,10 @@ function App() {
         <Route
           path={NAVIGATION_ROUTES.EDIT_SALE}
           element={<SaleForm />}
+        />
+        <Route
+          path={NAVIGATION_ROUTES.PROFILE}
+          element={<Profile />}
         />
       </Route>
     </Routes>
