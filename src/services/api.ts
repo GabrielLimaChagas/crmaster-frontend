@@ -98,3 +98,57 @@ export const productService = {
       method: "DELETE",
     }),
 };
+
+export interface PreSaleProductItem {
+  id?: string | number;
+  product_id?: string | number;
+  name?: string;
+  price?: number | string;
+  quantidade: number;
+  subtotal?: number | string;
+}
+
+export interface PreSaleItem {
+  id: string | number;
+  client: string;
+  step: string;
+  productsCount: number;
+  customer_id?: string | number;
+  total?: number;
+  notes?: string;
+  date?: string;
+  items?: PreSaleProductItem[];
+}
+
+export interface PreSaleFormData {
+  client?: string;
+  customer_id?: string | number;
+  step?: string;
+  date?: string;
+  notes?: string;
+  products?: { product_id?: string | number; quantidade: number }[];
+}
+
+export const preSaleService = {
+  getAll: () => request<PreSaleItem[]>("/orcamentos"),
+  getById: (id: string | number) => request<PreSaleItem>(`/orcamentos/${id}`),
+  create: (data: PreSaleFormData) =>
+    request<{ success: boolean; preSale: PreSaleItem }>("/orcamentos", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  update: (id: string | number, data: PreSaleFormData) =>
+    request<{ success: boolean; preSale: PreSaleItem }>(`/orcamentos/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
+  delete: (id: string | number) =>
+    request<{ success: boolean; message?: string }>(`/orcamentos/${id}`, {
+      method: "DELETE",
+    }),
+};
+
+export const budgetService = preSaleService;
+export type BudgetItem = PreSaleItem;
+export type BudgetFormData = PreSaleFormData;
+
