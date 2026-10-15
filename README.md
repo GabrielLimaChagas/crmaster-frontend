@@ -1,3 +1,11 @@
+# CRMaster
+
+## Build do Projeto
+
+1. Empacotar utilizando empacotador padrão do Vite (`npm run build`);
+2. Os arquivos compactados do sistema ficam salvos na pasta `dist/`;
+3. Testar se o empacotamento funcionou (`npx serve -s dist`);
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
