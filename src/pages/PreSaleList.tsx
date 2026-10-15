@@ -9,6 +9,7 @@ import IconButton from "../components/core/IconButton";
 import Row from "../components/core/Row";
 import { NAVIGATION_ROUTES } from "../consts/navigationRoutes";
 import { pipelineService, PIPELINE_STEPS, type PipelineItem } from "../services/api";
+import { useAuth } from "../contexts/AuthContext";
 
 const formatCurrency = (val: number | string = 0) => {
   const num = typeof val === "number" ? val : parseFloat(String(val)) || 0;
@@ -24,6 +25,7 @@ const getStepLabel = (stepValue: string) => {
 };
 
 const PreSaleList: React.FC = () => {
+  const { user } = useAuth();
   const [data, setData] = useState<PipelineItem[]>([]);
   const [feedbackMessage, setFeedbackMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const navigate = useNavigate();
@@ -73,7 +75,11 @@ const PreSaleList: React.FC = () => {
     }
 
     try {
-      await pipelineService.close(id, "Fechamento realizado pela interface");
+      await pipelineService.close(
+        id,
+        "Fechamento realizado pela interface",
+        user?.company_id
+      );
       setFeedbackMessage({
         type: "success",
         text: "Venda concluída com sucesso!",

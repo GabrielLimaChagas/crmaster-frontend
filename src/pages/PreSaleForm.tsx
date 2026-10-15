@@ -25,6 +25,7 @@ import {
   type PipelineProductItem,
   type PipelineFormData,
 } from "../services/api";
+import { useAuth } from "../contexts/AuthContext";
 
 type PreSaleFormFields = {
   customer_id: string | number;
@@ -43,6 +44,7 @@ const formatCurrency = (val: number | string = 0) => {
 };
 
 const PreSaleForm: React.FC = () => {
+  const { user } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
@@ -256,7 +258,11 @@ const PreSaleForm: React.FC = () => {
     setFeedbackMessage(null);
 
     try {
-      await pipelineService.close(id, "Fechamento realizado pela interface");
+      await pipelineService.close(
+        id,
+        "Fechamento realizado pela interface",
+        user?.company_id
+      );
       setValue("step", "CLOSING");
       setFeedbackMessage({
         type: "success",
@@ -278,6 +284,7 @@ const PreSaleForm: React.FC = () => {
     const payload: PipelineFormData = {
       customer_id: formData.customer_id ? Number(formData.customer_id) : null,
       employee_id: formData.employee_id ? Number(formData.employee_id) : null,
+      company_id: user?.company_id ? Number(user.company_id) : null,
       step: formData.step,
       date: formData.date,
       note: formData.note,
@@ -297,9 +304,13 @@ const PreSaleForm: React.FC = () => {
         savedPipelineId = String(res.pipeline?.id || "");
       }
 
-      // Se a etapa for CLOSING, garante a conclusão da venda
+      // Se a etapa for CLOSING, garante a conclusão da venda com o company_id ativo
       if (formData.step === "CLOSING" && savedPipelineId) {
-        await pipelineService.close(savedPipelineId, "Fechamento realizado pela interface");
+        await pipelineService.close(
+          savedPipelineId,
+          "Fechamento realizado pela interface",
+          user?.company_id
+        );
       }
 
       setFeedbackMessage({

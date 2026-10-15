@@ -20,6 +20,7 @@ import {
   exportProducts,
   type ProductItem,
 } from "../services/api";
+import PluginGuard from "../components/auth/PluginGuard";
 
 const formatCentAsReal = (value: number | string = 0) => {
   const num = typeof value === "number" ? value : parseFloat(String(value)) * 100 || 0;
@@ -156,79 +157,82 @@ const ProductList = () => {
               className="hidden"
             />
 
-            {/* Botão de Importação */}
-            <Button
-              label={isImporting ? "Importando..." : "Importar Produtos"}
-              variant="secondary"
-              className="border border-neutral-300 bg-white hover:bg-neutral-50 text-neutral-700 text-xs px-3 py-1.5 flex items-center gap-1.5 shadow-xs"
-              disabled={isImporting || isExporting}
-              leftAttachment={
-                isImporting ? (
-                  <ArrowPathIcon className="w-4 h-4 animate-spin text-blue-600" />
-                ) : (
-                  <ArrowUpTrayIcon className="w-4 h-4 text-neutral-500" />
-                )
-              }
-              onClick={handleImportClick}
-            />
-
-            {/* Menu Dropdown de Exportação */}
-            <div className="relative inline-block text-left">
+            {/* Recursos de Importação e Exportação protegidos por plugin */}
+            <PluginGuard plugin="import_export_plugin">
+              {/* Botão de Importação */}
               <Button
-                label={isExporting ? "Exportando..." : "Exportar"}
+                label={isImporting ? "Importando..." : "Importar Produtos"}
                 variant="secondary"
                 className="border border-neutral-300 bg-white hover:bg-neutral-50 text-neutral-700 text-xs px-3 py-1.5 flex items-center gap-1.5 shadow-xs"
                 disabled={isImporting || isExporting}
                 leftAttachment={
-                  isExporting ? (
+                  isImporting ? (
                     <ArrowPathIcon className="w-4 h-4 animate-spin text-blue-600" />
                   ) : (
-                    <ArrowDownTrayIcon className="w-4 h-4 text-neutral-500" />
+                    <ArrowUpTrayIcon className="w-4 h-4 text-neutral-500" />
                   )
                 }
-                rightAttachment={
-                  <ChevronDownIcon className="w-3.5 h-3.5 text-neutral-400" />
-                }
-                onClick={() => setExportMenuOpen((prev) => !prev)}
+                onClick={handleImportClick}
               />
 
-              {exportMenuOpen && (
-                <>
-                  <div
-                    className="fixed inset-0 z-40"
-                    onClick={() => setExportMenuOpen(false)}
-                  />
-                  <div className="absolute right-0 mt-1.5 w-44 bg-white rounded-xl shadow-lg border border-neutral-200 py-1.5 z-50">
-                    <button
-                      type="button"
-                      className="w-full text-left px-3.5 py-2 text-xs text-neutral-700 hover:bg-neutral-50 flex items-center gap-2 cursor-pointer transition font-medium"
-                      onClick={() => {
-                        setExportMenuOpen(false);
-                        handleExport("csv");
-                      }}
-                    >
-                      <span className="font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded text-[10px]">
-                        CSV
-                      </span>
-                      Exportar CSV
-                    </button>
-                    <button
-                      type="button"
-                      className="w-full text-left px-3.5 py-2 text-xs text-neutral-700 hover:bg-neutral-50 flex items-center gap-2 cursor-pointer transition font-medium border-t border-neutral-100"
-                      onClick={() => {
-                        setExportMenuOpen(false);
-                        handleExport("json");
-                      }}
-                    >
-                      <span className="font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded text-[10px]">
-                        JSON
-                      </span>
-                      Exportar JSON
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
+              {/* Menu Dropdown de Exportação */}
+              <div className="relative inline-block text-left">
+                <Button
+                  label={isExporting ? "Exportando..." : "Exportar"}
+                  variant="secondary"
+                  className="border border-neutral-300 bg-white hover:bg-neutral-50 text-neutral-700 text-xs px-3 py-1.5 flex items-center gap-1.5 shadow-xs"
+                  disabled={isImporting || isExporting}
+                  leftAttachment={
+                    isExporting ? (
+                      <ArrowPathIcon className="w-4 h-4 animate-spin text-blue-600" />
+                    ) : (
+                      <ArrowDownTrayIcon className="w-4 h-4 text-neutral-500" />
+                    )
+                  }
+                  rightAttachment={
+                    <ChevronDownIcon className="w-3.5 h-3.5 text-neutral-400" />
+                  }
+                  onClick={() => setExportMenuOpen((prev) => !prev)}
+                />
+
+                {exportMenuOpen && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-40"
+                      onClick={() => setExportMenuOpen(false)}
+                    />
+                    <div className="absolute right-0 mt-1.5 w-44 bg-white rounded-xl shadow-lg border border-neutral-200 py-1.5 z-50">
+                      <button
+                        type="button"
+                        className="w-full text-left px-3.5 py-2 text-xs text-neutral-700 hover:bg-neutral-50 flex items-center gap-2 cursor-pointer transition font-medium"
+                        onClick={() => {
+                          setExportMenuOpen(false);
+                          handleExport("csv");
+                        }}
+                      >
+                        <span className="font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded text-[10px]">
+                          CSV
+                        </span>
+                        Exportar CSV
+                      </button>
+                      <button
+                        type="button"
+                        className="w-full text-left px-3.5 py-2 text-xs text-neutral-700 hover:bg-neutral-50 flex items-center gap-2 cursor-pointer transition font-medium border-t border-neutral-100"
+                        onClick={() => {
+                          setExportMenuOpen(false);
+                          handleExport("json");
+                        }}
+                      >
+                        <span className="font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded text-[10px]">
+                          JSON
+                        </span>
+                        Exportar JSON
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </PluginGuard>
 
             {/* Botão Novo Produto */}
             <Button

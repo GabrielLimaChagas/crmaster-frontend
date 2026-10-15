@@ -3,7 +3,7 @@
  * Gerencia comunicação de login/logout e persistência no localStorage.
  */
 
-import { userService, type UserItem } from "./api";
+import { userService, companyService, type UserItem } from "./api";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:5000/api";
 
@@ -14,6 +14,8 @@ export interface AuthUser {
   email: string;
   company_id?: number;
   role: string;
+  plugins?: string[];
+  active_plugins?: string[];
 }
 
 export interface LoginCredentials {
@@ -29,6 +31,7 @@ const STORAGE_KEYS = {
   COMPANY_ID: "company_id",
   ROLE: "role",
   USER_DATA: "crmaster_user",
+  ACTIVE_PLUGINS: "active_plugins",
   LEGACY_COMPANY_ID: "companyId",
 };
 
@@ -56,6 +59,8 @@ export const authService = {
       if (response.ok) {
         const data = await response.json();
         const user = data.user || data;
+        const rawPlugins = user.active_plugins || user.plugins || [];
+        const plugins = Array.isArray(rawPlugins) ? rawPlugins : [];
         return {
           id: Number(user.id || user.user_id),
           user_id: Number(user.id || user.user_id),
@@ -63,6 +68,8 @@ export const authService = {
           email: String(user.email || identifier),
           company_id: user.company_id ? Number(user.company_id) : undefined,
           role: String(user.role || "EMPLOYEE"),
+          active_plugins: plugins,
+          plugins,
         };
       }
 
@@ -87,6 +94,8 @@ export const authService = {
       if (response.ok) {
         const data = await response.json();
         const user = data.user || data;
+        const rawPlugins = user.active_plugins || user.plugins || [];
+        const plugins = Array.isArray(rawPlugins) ? rawPlugins : [];
         return {
           id: Number(user.id || user.user_id),
           user_id: Number(user.id || user.user_id),
@@ -94,6 +103,8 @@ export const authService = {
           email: String(user.email || identifier),
           company_id: user.company_id ? Number(user.company_id) : undefined,
           role: String(user.role || "EMPLOYEE"),
+          active_plugins: plugins,
+          plugins,
         };
       }
 
@@ -119,6 +130,16 @@ export const authService = {
         throw new Error("Usuário ou senha inválidos.");
       }
 
+      let activePlugins: string[] = matched.active_plugins || matched.plugins || [];
+      if (activePlugins.length === 0 && matched.company_id) {
+        try {
+          const comp = await companyService.getById(matched.company_id);
+          activePlugins = comp.active_plugins || (comp.plugins ? comp.plugins.map(p => p.name) : []);
+        } catch {
+          // Mantém vazio se falhar
+        }
+      }
+
       // Se encontrado na lista de usuários cadastrados
       return {
         id: matched.id,
@@ -127,6 +148,8 @@ export const authService = {
         email: matched.email,
         company_id: matched.company_id,
         role: matched.role || "EMPLOYEE",
+        active_plugins: activePlugins,
+        plugins: activePlugins,
       };
     } catch (err: any) {
       if (err.message === "Usuário ou senha inválidos.") {
@@ -149,7 +172,16 @@ export const authService = {
       localStorage.setItem(STORAGE_KEYS.LEGACY_COMPANY_ID, String(user.company_id));
     }
     localStorage.setItem(STORAGE_KEYS.ROLE, user.role || "EMPLOYEE");
-    localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(user));
+    const plugins = user.active_plugins || user.plugins || [];
+    localStorage.setItem(STORAGE_KEYS.ACTIVE_PLUGINS, JSON.stringify(plugins));
+    localStorage.setItem(
+      STORAGE_KEYS.USER_DATA,
+      JSON.stringify({
+        ...user,
+        active_plugins: plugins,
+        plugins,
+      })
+    );
   },
 
   /**
@@ -162,6 +194,7 @@ export const authService = {
     localStorage.removeItem(STORAGE_KEYS.COMPANY_ID);
     localStorage.removeItem(STORAGE_KEYS.LEGACY_COMPANY_ID);
     localStorage.removeItem(STORAGE_KEYS.ROLE);
+    localStorage.removeItem(STORAGE_KEYS.ACTIVE_PLUGINS);
     localStorage.removeItem(STORAGE_KEYS.USER_DATA);
 
     // Notifica backend de logout em segundo plano (se suportado)
@@ -172,11 +205,21 @@ export const authService = {
    * Recupera a sessão atual armazenada no localStorage.
    */
   getStoredSession(): AuthUser | null {
+    let fallbackPlugins: string[] = [];
+    const storedPlugins = localStorage.getItem(STORAGE_KEYS.ACTIVE_PLUGINS);
+    if (storedPlugins) {
+      try {
+        const parsed = JSON.parse(storedPlugins);
+        if (Array.isArray(parsed)) fallbackPlugins = parsed;
+      } catch {}
+    }
+
     const rawUserData = localStorage.getItem(STORAGE_KEYS.USER_DATA);
     if (rawUserData) {
       try {
         const parsed = JSON.parse(rawUserData);
         if (parsed && (parsed.id || parsed.user_id || parsed.email)) {
+          const plugins = parsed.active_plugins || parsed.plugins || fallbackPlugins;
           return {
             id: Number(parsed.id || parsed.user_id),
             user_id: Number(parsed.id || parsed.user_id),
@@ -184,6 +227,8 @@ export const authService = {
             email: parsed.email || "",
             company_id: parsed.company_id ? Number(parsed.company_id) : undefined,
             role: parsed.role || "EMPLOYEE",
+            active_plugins: Array.isArray(plugins) ? plugins : [],
+            plugins: Array.isArray(plugins) ? plugins : [],
           };
         }
       } catch {
@@ -205,6 +250,8 @@ export const authService = {
         email: email || "",
         company_id: companyId && !isNaN(Number(companyId)) ? Number(companyId) : undefined,
         role: role || "EMPLOYEE",
+        active_plugins: fallbackPlugins,
+        plugins: fallbackPlugins,
       };
     }
 

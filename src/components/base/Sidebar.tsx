@@ -56,13 +56,21 @@ const MENU_ITEMS = [
     path: NAVIGATION_ROUTES.NOTIFICATIONS,
     icon: BellIcon,
     label: "Notificações",
+    plugin: "notifications_plugin",
   },
 ];
 
 const Sidebar: React.FC = () => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const { logout, user } = useAuth();
+  const { logout, user, hasPlugin } = useAuth();
+
+  const visibleMenuItems = MENU_ITEMS.filter((item) => {
+    if ((item as any).plugin) {
+      return hasPlugin((item as any).plugin);
+    }
+    return true;
+  });
 
   return (
     <Col className="w-56 h-screen shrink-0 bg-white px-2 border-r border-neutral-200 justify-between overflow-hidden">
@@ -71,7 +79,7 @@ const Sidebar: React.FC = () => {
           <img src={Logo} alt="logo" />
         </Col>
         <Col className="overflow-y-auto gap-0.5">
-          {MENU_ITEMS.map((props) => (
+          {visibleMenuItems.map((props) => (
             <SidebarItemMenu
               key={props.path}
               {...props}

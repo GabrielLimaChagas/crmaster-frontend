@@ -5,8 +5,19 @@
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:5000/api";
 
+export function getActiveCompanyHeader(): Record<string, string> {
+  const cid = localStorage.getItem("company_id") || localStorage.getItem("companyId");
+  if (cid && !isNaN(Number(cid))) {
+    return { "X-Company-ID": String(cid) };
+  }
+  return {};
+}
+
 export function sanitizeUserMessage(msg?: string): string {
   if (!msg) return "Não foi possível concluir a ação. Tente novamente.";
+  if (msg.includes("Módulo não contratado") || msg.includes("Modulo nao contratado")) {
+    return "Módulo não contratado para esta empresa.";
+  }
   if (msg.includes("Venda finalizada via Facade") || msg.includes("SaleCheckoutFacade")) {
     return "Venda concluída com sucesso!";
   }
@@ -32,6 +43,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
   const url = `${API_BASE_URL}${endpoint}`;
   const headers: HeadersInit = {
     "Content-Type": "application/json",
+    ...getActiveCompanyHeader(),
     ...(options.headers || {}),
   };
 
@@ -43,6 +55,9 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
 
   if (!response.ok) {
     const errorBody = await response.json().catch(() => null);
+    if (response.status === 403) {
+      throw new Error(errorBody?.error || "Módulo não contratado para esta empresa.");
+    }
     const rawError = errorBody?.error || errorBody?.message || "";
     const errorMessage = sanitizeUserMessage(rawError);
     throw new Error(errorMessage);
@@ -65,11 +80,17 @@ async function uploadFormData<T>(endpoint: string, formData: FormData): Promise<
   const url = `${API_BASE_URL}${endpoint}`;
   const response = await fetch(url, {
     method: "POST",
+    headers: {
+      ...getActiveCompanyHeader(),
+    },
     body: formData,
   });
 
   if (!response.ok) {
     const errorBody = await response.json().catch(() => null);
+    if (response.status === 403) {
+      throw new Error(errorBody?.error || "Módulo não contratado para esta empresa.");
+    }
     const rawError = errorBody?.error || errorBody?.message || "";
     const errorMessage = sanitizeUserMessage(rawError);
     throw new Error(errorMessage);
@@ -82,11 +103,17 @@ async function downloadFileBlob(endpoint: string, defaultFilename: string): Prom
   const url = `${API_BASE_URL}${endpoint}`;
   const response = await fetch(url, {
     method: "GET",
+    headers: {
+      ...getActiveCompanyHeader(),
+    },
     cache: "no-store",
   });
 
   if (!response.ok) {
     const errorBody = await response.json().catch(() => null);
+    if (response.status === 403) {
+      throw new Error(errorBody?.error || "Módulo não contratado para esta empresa.");
+    }
     const rawError = errorBody?.error || errorBody?.message || "";
     const errorMessage = sanitizeUserMessage(rawError);
     throw new Error(errorMessage);
@@ -265,6 +292,8 @@ export interface UserItem {
   email: string;
   role: string;
   company_id?: number;
+  plugins?: string[];
+  active_plugins?: string[];
 }
 
 export const userService = {
@@ -302,6 +331,7 @@ export interface CompanyItem {
   campany_id?: number | null;
   plugins?: PluginItem[];
   plugin_ids?: number[];
+  active_plugins?: string[];
 }
 
 export interface OnboardingPayload {
@@ -432,6 +462,7 @@ export interface PipelineItem {
 export interface PipelineFormData {
   customer_id?: string | number | null;
   employee_id?: string | number | null;
+  company_id?: string | number | null;
   step?: string;
   date?: string;
   note?: string;
@@ -460,16 +491,40 @@ export const pipelineService = {
       method: "PUT",
       body: JSON.stringify(data),
     }),
-  close: (id: string | number, note?: string) =>
-    request<{ success: boolean; message: string; pipeline_id: number }>(`/pipelines/${id}/close`, {
-      method: "POST",
-      body: JSON.stringify({ note: note || "Fechamento realizado pela interface" }),
-    }),
+  close: (id: string | number, note?: string, company_id?: number | string) => {
+    let resolvedCompanyId = company_id;
+    if (!resolvedCompanyId) {
+      const stored =
+        localStorage.getItem("company_id") || localStorage.getItem("companyId");
+      if (stored && !isNaN(Number(stored))) {
+        resolvedCompanyId = Number(stored);
+      }
+    }
+    const payload: { note: string; company_id?: number } = {
+      note: note || "Fechamento realizado pela interface",
+    };
+    if (resolvedCompanyId !== undefined && resolvedCompanyId !== null) {
+      payload.company_id = Number(resolvedCompanyId);
+    }
+    return request<{ success: boolean; message: string; pipeline_id: number }>(
+      `/pipelines/${id}/close`,
+      {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }
+    );
+  },
   delete: (id: string | number) =>
     request<{ success: boolean; message?: string }>(`/pipelines/${id}`, {
       method: "DELETE",
     }),
 };
+
+export const closePipeline = (
+  id: string | number,
+  note?: string,
+  company_id?: number | string
+) => pipelineService.close(id, note, company_id);
 
 // Aliases para compatibilidade total
 export const preSaleService = pipelineService;

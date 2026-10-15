@@ -3,6 +3,7 @@ import { NAVIGATION_ROUTES } from "./consts/navigationRoutes";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import PublicOnlyRoute from "./components/auth/PublicOnlyRoute";
+import PluginRouteGuard from "./components/auth/PluginRouteGuard";
 
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -61,14 +62,16 @@ function App() {
             <Route path={NAVIGATION_ROUTES.NEW_SALE} element={<SaleForm />} />
             <Route path={NAVIGATION_ROUTES.EDIT_SALE} element={<SaleForm />} />
             <Route path={NAVIGATION_ROUTES.PROFILE} element={<Profile />} />
-            <Route
-              path={NAVIGATION_ROUTES.NOTIFICATIONS}
-              element={<NotificationList />}
-            />
-            <Route
-              path={NAVIGATION_ROUTES.NOTIFICATIONS_EN}
-              element={<NotificationList />}
-            />
+            <Route element={<PluginRouteGuard plugin="notifications_plugin" />}>
+              <Route
+                path={NAVIGATION_ROUTES.NOTIFICATIONS}
+                element={<NotificationList />}
+              />
+              <Route
+                path={NAVIGATION_ROUTES.NOTIFICATIONS_EN}
+                element={<NotificationList />}
+              />
+            </Route>
           </Route>
           <Route
             path={NAVIGATION_ROUTES.ADMIN_NEW_COMPANY}
