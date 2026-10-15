@@ -1,37 +1,34 @@
-import { useEffect, useRef, useState } from "react";
-import { type SubmitHandler, useForm } from "react-hook-form";
+import React, { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import { useParams, useNavigate, useLocation } from "react-router";
-import { TrashIcon } from "@heroicons/react/20/solid";
+import { ArrowLeftIcon, CheckBadgeIcon } from "@heroicons/react/20/solid";
 import Header from "../components/base/Header";
 import Table, { type Column } from "../components/base/Table";
 import Button from "../components/core/Button";
 import Col from "../components/core/Col";
 import Form from "../components/core/Form";
-import IconButton from "../components/core/IconButton";
 import Input from "../components/core/Input";
 import Row from "../components/core/Row";
+import Select from "../components/core/Select";
 import { NAVIGATION_ROUTES } from "../consts/navigationRoutes";
 import {
-  saleService,
-  type SaleFormData,
-  type SaleItem,
-  type SaleProductItem,
+  pipelineService,
+  customerService,
+  userService,
+  PIPELINE_STEPS,
+  type CustomerItem,
+  type UserItem,
+  type PipelineItem,
+  type PipelineProductItem,
 } from "../services/api";
 
 type SaleFormFields = {
-  client: string;
+  customer_id: string;
+  employee_id: string;
   date: string;
-  status: string;
+  step: string;
+  note: string;
 };
-
-const DEFAULT_PRODUCTS: SaleProductItem[] = [
-  {
-    id: 1,
-    name: "Roçadeira",
-    quantidade: 1,
-    price: 259.99,
-  },
-];
 
 const formatCurrency = (val: number | string = 0) => {
   const num = typeof val === "number" ? val : parseFloat(String(val)) || 0;
@@ -45,96 +42,94 @@ const SaleForm: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const stateSale = (location.state as { sale?: SaleItem } | null)?.sale;
-  const isInitializedRef = useRef<string | null>(null);
+  const stateSale = (location.state as { sale?: PipelineItem } | null)?.sale;
 
-  const [products, setProducts] = useState<SaleProductItem[]>(() => {
-    if (stateSale?.items && stateSale.items.length > 0) {
-      return stateSale.items;
-    }
-    return DEFAULT_PRODUCTS;
-  });
+  const [customers, setCustomers] = useState<CustomerItem[]>([]);
+  const [employees, setEmployees] = useState<UserItem[]>([]);
+  const [products, setProducts] = useState<PipelineProductItem[]>([]);
+  const [feedbackMessage, setFeedbackMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const methods = useForm<SaleFormFields>({
     defaultValues: {
-      client: stateSale?.client || "",
-      date: stateSale?.date || "",
-      status: stateSale?.step || "",
+      customer_id: "",
+      employee_id: "",
+      date: "",
+      step: "CLOSING",
+      note: "",
     },
   });
 
   const { reset } = methods;
 
+  // Carrega Clientes, Colaboradores e os detalhes da Venda com Await
   useEffect(() => {
-    // 1. Modo de criação (sem ID)
-    if (!id) {
-      if (isInitializedRef.current !== "new") {
-        reset({
-          client: "",
-          date: "",
-          status: "",
-        });
-        isInitializedRef.current = "new";
-      }
-      return;
-    }
+    let isMounted = true;
 
-    // 2. Já inicializado para este ID
-    if (isInitializedRef.current === String(id)) {
-      return;
-    }
+    const loadSaleDetails = async () => {
+      try {
+        const [customersData, employeesData] = await Promise.all([
+          customerService.getAll().catch(() => []),
+          userService.getAll().catch(() => []),
+        ]);
 
-    // 3. Dados recebidos via location.state
-    if (stateSale && String(stateSale.id) === String(id)) {
-      reset({
-        client: stateSale.client || "",
-        date: stateSale.date || "",
-        status: stateSale.step || "",
-      });
-      isInitializedRef.current = String(id);
-      return;
-    }
+        if (!isMounted) return;
 
-    // 4. Base de integração: busca da API no carregamento / F5
-    let isSubscribed = true;
-    saleService
-      .getById(id)
-      .then((item) => {
-        if (isSubscribed && isInitializedRef.current !== String(id)) {
-          reset({
-            client: item.client || "",
-            date: item.date || "",
-            status: item.step || "",
-          });
-          if (item.items && item.items.length > 0) {
-            setProducts(item.items);
+        setCustomers(customersData || []);
+        setEmployees(employeesData || []);
+
+        if (id) {
+          let item: PipelineItem | null = null;
+          if (stateSale && String(stateSale.id) === String(id)) {
+            item = stateSale;
+          } else {
+            item = await pipelineService.getById(id);
           }
-          isInitializedRef.current = String(id);
+
+          if (!isMounted || !item) return;
+
+          const customerId = String(item.customer_id ?? item.customer?.id ?? "");
+          const employeeId = String(item.employee_id ?? item.employee?.id ?? "");
+          const stepVal = String(item.step || "CLOSING");
+          const dateVal = item.date ? item.date.slice(0, 10) : "";
+          const noteVal = String(item.note || "");
+
+          reset({
+            customer_id: customerId,
+            employee_id: employeeId,
+            date: dateVal,
+            step: stepVal,
+            note: noteVal,
+          });
+
+          const prods = item.sale_products || item.items || [];
+          setProducts(prods);
+
+          // Garante a sincronização dos valores no DOM com cast explícito
+          setTimeout(() => {
+            const customerEl = document.getElementById("sale-customer") as HTMLSelectElement | null;
+            if (customerEl && customerId) {
+              customerEl.value = String(customerId);
+            }
+            const employeeEl = document.getElementById("sale-employee") as HTMLSelectElement | null;
+            if (employeeEl && employeeId) {
+              employeeEl.value = String(employeeId);
+            }
+          }, 50);
         }
-      })
-      .catch((error) => {
-        console.warn(
-          "Integração com backend (/sales/:id) em andamento. Utilizando valores base:",
-          error,
-        );
-      });
+      } catch {
+        setFeedbackMessage({
+          type: "error",
+          text: "Não foi possível carregar os detalhes da venda. Tente novamente.",
+        });
+      }
+    };
+
+    loadSaleDetails();
 
     return () => {
-      isSubscribed = false;
+      isMounted = false;
     };
   }, [id, stateSale, reset]);
-
-  const handleQuantityChange = (index: number, newQty: number) => {
-    const qty = Math.max(1, newQty);
-    setProducts((prev) =>
-      prev.map((item, idx) => (idx === index ? { ...item, quantidade: qty } : item)),
-    );
-  };
-
-  const handleProductDelete = (index: number) => {
-    if (!window.confirm("Deseja realmente remover este produto da venda?")) return;
-    setProducts((prev) => prev.filter((_, idx) => idx !== index));
-  };
 
   const totalVenda = products.reduce((acc, item) => {
     const price =
@@ -144,63 +139,27 @@ const SaleForm: React.FC = () => {
     return acc + price * (item.quantidade || 1);
   }, 0);
 
-  const onSubmit: SubmitHandler<SaleFormFields> = async (formData) => {
-    const payload: SaleFormData = {
-      client: formData.client,
-      step: formData.status,
-      date: formData.date,
-      products: products.map((p) => ({
-        product_id: p.product_id || p.id,
-        quantidade: p.quantidade,
-      })),
-    };
-
-    try {
-      console.log("[SaleForm] Enviando alteração para ID:", id, payload);
-      if (id) {
-        await saleService.update(id, payload);
-      } else {
-        await saleService.create(payload);
-      }
-      navigate(`/${NAVIGATION_ROUTES.SALES}`);
-    } catch (error) {
-      console.warn(
-        "Base de integração com backend em andamento. Redirecionando para a listagem:",
-        error,
-      );
-      navigate(`/${NAVIGATION_ROUTES.SALES}`);
-    }
-  };
-
-  const productColumns: Column<SaleProductItem>[] = [
+  const productColumns: Column<PipelineProductItem>[] = [
     {
       header: "ID",
       accessor: (item) => item.id || item.product_id || "-",
       className: "w-16",
     },
     {
-      header: "Nome",
-      accessor: (item) => item.name || "Produto",
+      header: "Nome do Produto",
+      accessor: (item) => item.name || item.product_name || "Produto",
     },
     {
       header: "Quantidade",
-      accessor: (item) => {
-        const itemIndex = products.findIndex((p) => p === item);
-        return (
-          <input
-            type="number"
-            min={1}
-            value={item.quantidade}
-            onChange={(e) =>
-              handleQuantityChange(itemIndex, parseInt(e.target.value, 10) || 1)
-            }
-            className="w-16 border border-neutral-300 rounded px-1 text-center bg-white"
-          />
-        );
-      },
+      accessor: "quantidade",
+      className: "text-center w-24",
     },
     {
-      header: "Preço Total",
+      header: "Preço Unitário",
+      accessor: (item) => formatCurrency(item.price || 0),
+    },
+    {
+      header: "Subtotal",
       accessor: (item) => {
         const price =
           typeof item.price === "number"
@@ -208,73 +167,111 @@ const SaleForm: React.FC = () => {
             : parseFloat(String(item.price)) || 0;
         return formatCurrency(price * (item.quantidade || 1));
       },
-    },
-    {
-      header: "",
-      className: "text-right",
-      accessor: (item) => {
-        const itemIndex = products.findIndex((p) => p === item);
-        return (
-          <Row className="text-neutral-600 justify-end gap-1">
-            <IconButton
-              icon={<TrashIcon className="w-5 h-5 cursor-pointer hover:text-red-600 transition" />}
-              onClick={() => handleProductDelete(itemIndex)}
-              title="Remover produto da tabela"
-            />
-          </Row>
-        );
-      },
+      className: "font-medium text-neutral-800",
     },
   ];
 
   return (
     <Col className="w-full min-h-screen bg-neutral-100">
-      <Header title="Vendas" />
-      <Col className="w-full p-4">
-        <Col className="bg-white p-6 rounded-2xl shadow-sm border border-neutral-200">
-          <Form
-            className="w-full"
-            methods={methods}
-            onSubmit={onSubmit}
+      <Header
+        title={`Visualização da Venda #${id || ""}`}
+        rightAttachment={
+          <Button
+            type="button"
+            label="Voltar para Vendas"
+            variant="secondary"
+            className="flex items-center gap-1.5 border border-neutral-300 hover:bg-neutral-100 text-neutral-700"
+            onClick={() => navigate(`/${NAVIGATION_ROUTES.SALES}`)}
+            leftAttachment={<ArrowLeftIcon className="w-4 h-4 mr-1 inline" />}
+          />
+        }
+      />
+
+      <Col className="w-full p-4 gap-4">
+        {feedbackMessage && (
+          <div
+            className={`p-4 rounded-xl border text-sm font-medium ${
+              feedbackMessage.type === "success"
+                ? "bg-emerald-50 border-emerald-200 text-emerald-800"
+                : "bg-red-50 border-red-200 text-red-800"
+            }`}
           >
+            {feedbackMessage.text}
+          </div>
+        )}
+
+        <div className="flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-sm font-medium">
+          <CheckBadgeIcon className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+          <span>
+            Esta venda já foi concluída e fechada. Os registros são exibidos em modo somente leitura para integridade dos dados fiscais e operacionais.
+          </span>
+        </div>
+
+        <Col className="bg-white p-6 rounded-2xl shadow-sm border border-neutral-200">
+          <Form className="w-full" methods={methods} onSubmit={() => {}}>
             <Row className="w-full gap-8 items-start">
-              {/* Lado esquerdo: Campos do formulário */}
+              {/* Lado esquerdo: Campos em modo somente leitura (disabled) */}
               <Col className="w-5/12 gap-4">
-                <Input name="client" label="Nome do Cliente" />
-                <Input name="date" label="Data da Venda" type="date" />
-                <Input name="status" label="Status da Venda" />
-                <Row className="mt-2">
-                  <Button
-                    type="submit"
-                    label="Salvar alterações"
-                    variant="primary"
-                  />
-                </Row>
+                <Select
+                  name="customer_id"
+                  id="sale-customer"
+                  label="Cliente Vinculado"
+                  placeholderOption="Cliente não especificado"
+                  optionsList={customers.map((c) => ({
+                    value: String(c.id),
+                    label: `${c.name} (${c.email || c.phone || "Sem contato"})`,
+                  }))}
+                  disabled
+                />
+
+                <Select
+                  name="step"
+                  id="sale-step"
+                  label="Etapa da Venda"
+                  optionsList={PIPELINE_STEPS}
+                  disabled
+                />
+
+                <Select
+                  name="employee_id"
+                  id="sale-employee"
+                  label="Vendedor / Responsável"
+                  placeholderOption="Responsável não especificado"
+                  optionsList={employees.map((u) => ({
+                    value: String(u.id),
+                    label: `${u.name} - ${u.role}`,
+                  }))}
+                  disabled
+                />
+
+                <Input name="date" label="Data da Venda" type="date" disabled />
+
+                <Input name="note" label="Anotações da Venda" disabled />
               </Col>
 
-              {/* Lado direito: Tabela de produtos e total */}
+              {/* Lado direito: Produtos associados e total da venda */}
               <Col className="w-7/12 gap-4">
+                <span className="text-xs font-semibold text-neutral-700 uppercase tracking-wide">
+                  Produtos Associados à Venda
+                </span>
+
                 <Col className="border border-neutral-200 rounded-xl overflow-hidden">
                   <Table
                     columns={productColumns}
                     data={products}
-                    keyExtractor={(item) =>
-                      String(item.id ?? item.product_id ?? item.name)
-                    }
+                    keyExtractor={(item) => String(item.id ?? item.product_id ?? item.name)}
                     emptyState={
-                      <div className="p-4 text-center text-neutral-500">
-                        Nenhum produto adicionado.
+                      <div className="p-6 text-center text-neutral-500 text-sm">
+                        Nenhum produto associado a esta venda.
                       </div>
                     }
                   />
                 </Col>
 
-                {/* Total da Venda */}
+                {/* Total Consolidado */}
                 <Col className="items-end pr-2">
-                  <span className="text-xs text-neutral-500">
-                    Total da Venda
-                  </span>
-                  <span className="text-xl font-bold text-neutral-800">
+                  <span className="text-xs text-neutral-500">Total Consolidado da Venda</span>
+                  <span className="text-2xl font-bold text-neutral-900">
                     {formatCurrency(totalVenda)}
                   </span>
                 </Col>

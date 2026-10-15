@@ -1,14 +1,15 @@
-import { Outlet } from "react-router"
-import Sidebar from "../components/base/Sidebar"
-import Row from "../components/core/Row"
+import { Outlet } from "react-router";
+import Sidebar from "../components/base/Sidebar";
 
 const RootLayout = () => {
   return (
-    <Row className="flex bg-neutral-100 min-h-screen">
+    <div className="flex h-screen overflow-hidden bg-neutral-100">
       <Sidebar />
-      <Outlet />
-    </Row>
-  )
-}
+      <main className="flex-1 h-screen overflow-y-auto">
+        <Outlet />
+      </main>
+    </div>
+  );
+};
 
-export default RootLayout
+export default RootLayout;

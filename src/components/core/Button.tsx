@@ -6,15 +6,20 @@ interface ButtonProps {
   label?: string;
   variant?: ButtonVariants;
   leftAttachment?: React.ReactNode;
+  rightAttachment?: React.ReactNode;
 }
 
 const Button: React.FC<
   ButtonHTMLAttributes<HTMLButtonElement> & ButtonProps
-> = ({ label, leftAttachment, variant = "secondary", className, ...props }) => {
+> = ({ label, leftAttachment, rightAttachment, variant = "secondary", className, ...props }) => {
   return (
-    <button {...props} className={`min-h-8 transition-colors cursor-pointer rounded-lg outline-none px-4 ${VARIANT_CLASSNAMES[variant]} ${className}`}>
+    <button
+      {...props}
+      className={`min-h-8 transition-colors cursor-pointer rounded-lg outline-none px-4 inline-flex items-center justify-center gap-1.5 ${VARIANT_CLASSNAMES[variant]} ${className || ""}`}
+    >
       {leftAttachment}
-      {label}
+      {label && <span>{label}</span>}
+      {rightAttachment}
     </button>
   );
 };

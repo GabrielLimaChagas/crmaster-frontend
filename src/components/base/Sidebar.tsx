@@ -5,6 +5,7 @@ import {
   DocumentTextIcon,
   Squares2X2Icon,
   UsersIcon,
+  ArrowRightOnRectangleIcon,
 } from "@heroicons/react/20/solid";
 import { UserCircleIcon } from "@heroicons/react/24/outline";
 import Logo from "../../assets/crmaster.svg";
@@ -12,6 +13,7 @@ import Col from "../core/Col";
 import Row from "../core/Row";
 import { useLocation, useNavigate } from "react-router";
 import { NAVIGATION_ROUTES } from "../../consts/navigationRoutes";
+import { useAuth } from "../../contexts/AuthContext";
 
 interface SidebarItemMenuProps {
   icon: React.FC<{ className: string }>;
@@ -60,28 +62,40 @@ const MENU_ITEMS = [
 const Sidebar: React.FC = () => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
+  const { logout, user } = useAuth();
+
   return (
-    <Col className="w-50 bg-white px-2 border-r border-neutral-200">
-      <Col className="p-4">
-        <img src={Logo} alt="logo" />
+    <Col className="w-56 h-screen shrink-0 bg-white px-2 border-r border-neutral-200 justify-between overflow-hidden">
+      <Col className="overflow-hidden">
+        <Col className="p-4 shrink-0">
+          <img src={Logo} alt="logo" />
+        </Col>
+        <Col className="overflow-y-auto gap-0.5">
+          {MENU_ITEMS.map((props) => (
+            <SidebarItemMenu
+              key={props.path}
+              {...props}
+              active={pathname.includes(props.path)}
+              onClick={() => navigate(props.path)}
+            />
+          ))}
+        </Col>
       </Col>
-      <Col className="h-full">
-        {MENU_ITEMS.map((props) => (
-          <SidebarItemMenu
-            key={props.path}
-            {...props}
-            active={pathname.includes(props.path)}
-            onClick={() => navigate(props.path)}
-          />
-        ))}
-      </Col>
-      <Col className="pb-2">
+      <Col className="pb-4 shrink-0 border-t border-neutral-100 pt-2 gap-1">
         <SidebarItemMenu
           icon={UserCircleIcon}
-          label="Sua Área"
+          label={user?.name ? user.name.split(" ")[0] : "Sua Área"}
           active={pathname.includes(NAVIGATION_ROUTES.PROFILE)}
           onClick={() => navigate(NAVIGATION_ROUTES.PROFILE)}
         />
+        <Row
+          className="w-full px-2 py-2 gap-2 items-center rounded-lg cursor-pointer transition text-red-600 hover:bg-red-50 text-sm font-medium"
+          onClick={logout}
+          title="Encerrar sessão"
+        >
+          <ArrowRightOnRectangleIcon className="w-5 h-5 shrink-0" />
+          <span>Sair</span>
+        </Row>
       </Col>
     </Col>
   );

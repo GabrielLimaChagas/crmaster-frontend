@@ -13,6 +13,8 @@ export const NAVIGATION_ROUTES = {
   NEW_SALE: "vendas/novo",
   EDIT_SALE: "vendas/:id",
   NOTIFICATIONS: "notificacoes",
+  NOTIFICATIONS_EN: "notifications",
   PROFILE: "perfil",
+  LOGIN: "login",
   ADMIN_NEW_COMPANY: "admin/empresas/novo",
 } as const;
