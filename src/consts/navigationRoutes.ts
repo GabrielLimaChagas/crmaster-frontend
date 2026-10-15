@@ -14,4 +14,5 @@ export const NAVIGATION_ROUTES = {
   EDIT_SALE: "vendas/:id",
   NOTIFICATIONS: "notificacoes",
   PROFILE: "perfil",
+  ADMIN_NEW_COMPANY: "admin/empresas/novo",
 } as const;

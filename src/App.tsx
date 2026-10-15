@@ -11,6 +11,7 @@ import PreSaleForm from "./pages/PreSaleForm";
 import SaleList from "./pages/SaleList";
 import SaleForm from "./pages/SaleForm";
 import Profile from "./pages/Profile";
+import NewCompany from "./pages/NewCompany";
 
 function App() {
   return (
@@ -20,7 +21,10 @@ function App() {
         <Route path={NAVIGATION_ROUTES.DASHBOARD} element={<Dashboard />} />
         <Route path={NAVIGATION_ROUTES.PRODUCTS} element={<ProductList />} />
         <Route path={NAVIGATION_ROUTES.NEW_PRODUCT} element={<ProductForm />} />
-        <Route path={NAVIGATION_ROUTES.EDIT_PRODUCT} element={<ProductForm />} />
+        <Route
+          path={NAVIGATION_ROUTES.EDIT_PRODUCT}
+          element={<ProductForm />}
+        />
         <Route path={NAVIGATION_ROUTES.CUSTOMERS} element={<CustomerList />} />
         <Route
           path={NAVIGATION_ROUTES.NEW_CUSTOMER}
@@ -30,10 +34,7 @@ function App() {
           path={NAVIGATION_ROUTES.EDIT_CUSTOMER}
           element={<CustomerForm />}
         />
-        <Route
-          path={NAVIGATION_ROUTES.PRE_SALES}
-          element={<PreSaleList />}
-        />
+        <Route path={NAVIGATION_ROUTES.PRE_SALES} element={<PreSaleList />} />
         <Route
           path={NAVIGATION_ROUTES.NEW_PRE_SALE}
           element={<PreSaleForm />}
@@ -42,23 +43,15 @@ function App() {
           path={NAVIGATION_ROUTES.EDIT_PRE_SALE}
           element={<PreSaleForm />}
         />
-        <Route
-          path={NAVIGATION_ROUTES.SALES}
-          element={<SaleList />}
-        />
-        <Route
-          path={NAVIGATION_ROUTES.NEW_SALE}
-          element={<SaleForm />}
-        />
-        <Route
-          path={NAVIGATION_ROUTES.EDIT_SALE}
-          element={<SaleForm />}
-        />
-        <Route
-          path={NAVIGATION_ROUTES.PROFILE}
-          element={<Profile />}
-        />
+        <Route path={NAVIGATION_ROUTES.SALES} element={<SaleList />} />
+        <Route path={NAVIGATION_ROUTES.NEW_SALE} element={<SaleForm />} />
+        <Route path={NAVIGATION_ROUTES.EDIT_SALE} element={<SaleForm />} />
+        <Route path={NAVIGATION_ROUTES.PROFILE} element={<Profile />} />
       </Route>
+      <Route
+        path={NAVIGATION_ROUTES.ADMIN_NEW_COMPANY}
+        element={<NewCompany />}
+      />
     </Routes>
   );
 }
