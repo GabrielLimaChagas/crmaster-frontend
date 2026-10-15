@@ -152,3 +152,52 @@ export const budgetService = preSaleService;
 export type BudgetItem = PreSaleItem;
 export type BudgetFormData = PreSaleFormData;
 
+export interface SaleProductItem {
+  id?: string | number;
+  product_id?: string | number;
+  name?: string;
+  price?: number | string;
+  quantidade: number;
+  subtotal?: number | string;
+}
+
+export interface SaleItem {
+  id: string | number;
+  client: string;
+  step: string;
+  productsCount: number;
+  customer_id?: string | number;
+  total?: number;
+  notes?: string;
+  date?: string;
+  items?: SaleProductItem[];
+}
+
+export interface SaleFormData {
+  client?: string;
+  customer_id?: string | number;
+  step?: string;
+  date?: string;
+  notes?: string;
+  products?: { product_id?: string | number; quantidade: number }[];
+}
+
+export const saleService = {
+  getAll: () => request<SaleItem[]>("/sales"),
+  getById: (id: string | number) => request<SaleItem>(`/sales/${id}`),
+  create: (data: SaleFormData) =>
+    request<{ success: boolean; sale: SaleItem }>("/sales", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  update: (id: string | number, data: SaleFormData) =>
+    request<{ success: boolean; sale: SaleItem }>(`/sales/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
+  delete: (id: string | number) =>
+    request<{ success: boolean; message?: string }>(`/sales/${id}`, {
+      method: "DELETE",
+    }),
+};
+

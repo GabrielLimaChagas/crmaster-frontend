@@ -10,6 +10,8 @@ export const NAVIGATION_ROUTES = {
   NEW_PRE_SALE: "orcamentos/novo",
   EDIT_PRE_SALE: "orcamentos/:id",
   SALES: "vendas",
+  NEW_SALE: "vendas/novo",
+  EDIT_SALE: "vendas/:id",
   NOTIFICATIONS: "notificacoes",
   PROFILE: "perfil",
 } as const;
