@@ -2,10 +2,10 @@ import type { TextareaHTMLAttributes } from "react";
 import { useFormContext, type FieldValues, type RegisterOptions } from "react-hook-form";
 import Col from "./Col";
 
-interface TextAreaInputProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
+interface TextAreaInputProps extends Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, "value" | "defaultValue"> {
   name: string;
   label?: string;
-  options?: RegisterOptions<FieldValues, string>
+  options?: RegisterOptions<FieldValues, string>;
 }
 const TextAreaInput: React.FC<TextAreaInputProps> = ({
   name,

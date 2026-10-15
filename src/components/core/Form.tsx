@@ -6,7 +6,7 @@ import {
 } from "react-hook-form";
 
 interface FormProps<T extends FieldValues> {
-  methods: UseFormReturn<T, any, T>;
+  methods: UseFormReturn<T, unknown, T>;
   className?: string
   children?: React.ReactNode;
   onSubmit?: SubmitHandler<T>;
@@ -21,8 +21,11 @@ function Form<T extends FieldValues>({
   return (
     <FormProvider {...methods}>
       <form 
+        noValidate
         className={className} 
-        onSubmit={methods.handleSubmit(onSubmit)}>
+        onSubmit={methods.handleSubmit(onSubmit, (errors) => {
+          console.error("[Form] Erros de validação:", errors);
+        })}>
           {children}
       </form>
     </FormProvider>

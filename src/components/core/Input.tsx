@@ -2,10 +2,10 @@ import { useFormContext, type FieldValues, type RegisterOptions } from "react-ho
 import Col from "./Col";
 import type { InputHTMLAttributes } from "react";
 
-interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
+interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "value" | "defaultValue"> {
   name: string;
   label?: string;
-  options?: RegisterOptions<FieldValues, string>
+  options?: RegisterOptions<FieldValues, string>;
 }
 const Input: React.FC<InputProps> = ({
   name,

@@ -12,9 +12,11 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<RootLayout />}>
-        <Route index path={NAVIGATION_ROUTES.DASHBOARD} element={<Dashboard />} />
+        <Route index element={<Dashboard />} />
+        <Route path={NAVIGATION_ROUTES.DASHBOARD} element={<Dashboard />} />
         <Route path={NAVIGATION_ROUTES.PRODUCTS} element={<ProductList />} />
         <Route path={NAVIGATION_ROUTES.NEW_PRODUCT} element={<ProductForm />} />
+        <Route path={`${NAVIGATION_ROUTES.PRODUCTS}/:id`} element={<ProductForm />} />
         <Route path={NAVIGATION_ROUTES.CUSTOMERS} element={<CustomerList />} />
         <Route path={NAVIGATION_ROUTES.NEW_CUSTOMER} element={<CustomerForm />} />
         <Route path={NAVIGATION_ROUTES.EDIT_CUSTOMER} element={<CustomerForm />} />
