@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { type SubmitHandler, useForm } from "react-hook-form";
 import { useParams, useNavigate, useLocation } from "react-router";
 import Col from "../components/core/Col";
@@ -30,6 +30,7 @@ const ProductForm = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const stateProduct = (location.state as { product?: ProductItem } | null)?.product;
+  const isInitializedRef = useRef<string | null>(null);
 
   const methods = useForm<ProductFormFields>({
     defaultValues: {
@@ -42,34 +43,47 @@ const ProductForm = () => {
   const { reset } = methods;
 
   useEffect(() => {
+    // 1. Modo de criação (sem ID)
     if (!id) {
-      reset({
-        name: "",
-        price: "",
-        description: "",
-      });
+      if (isInitializedRef.current !== "new") {
+        reset({
+          name: "",
+          price: "",
+          description: "",
+        });
+        isInitializedRef.current = "new";
+      }
       return;
     }
 
+    // 2. Se já foi inicializado para este mesmo ID, evita reset indevido
+    if (isInitializedRef.current === String(id)) {
+      return;
+    }
+
+    // 3. Se temos os dados passados pelo estado da rota, preenche uma única vez
     if (stateProduct && String(stateProduct.id) === String(id)) {
       reset({
         name: stateProduct.name || "",
         price: getPriceString(stateProduct),
         description: stateProduct.description || "",
       });
+      isInitializedRef.current = String(id);
       return;
     }
 
+    // 4. Caso contrário (acesso direto ou F5), busca da API uma única vez
     let isSubscribed = true;
     productService
       .getById(id)
       .then((product) => {
-        if (isSubscribed) {
+        if (isSubscribed && isInitializedRef.current !== String(id)) {
           reset({
             name: product.name || "",
             price: getPriceString(product),
             description: product.description || "",
           });
+          isInitializedRef.current = String(id);
         }
       })
       .catch((error) => {
@@ -79,16 +93,24 @@ const ProductForm = () => {
     return () => {
       isSubscribed = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]); // DEPENDÊNCIA EXCLUSIVA: ID DA ROTA. Não reexecuta durante digitação!
+  }, [id, stateProduct, reset]);
 
   const onSubmit: SubmitHandler<ProductFormFields> = async (data: ProductFormData) => {
     try {
-      console.log("[ProductForm] Enviando alteração para ID:", id, data);
+      const currentValues = methods.getValues();
+      const payload: ProductFormData = {
+        name: (data?.name ?? currentValues.name ?? "").trim(),
+        price: (data?.price ?? currentValues.price ?? "").trim(),
+        description: (data?.description ?? currentValues.description ?? "").trim(),
+      };
+
+      console.log("[ProductForm] Dados capturados no submit:", payload);
+      console.log("[ProductForm] Enviando alteração para ID:", id, payload);
+
       if (id) {
-        await productService.update(id, data);
+        await productService.update(id, payload);
       } else {
-        await productService.create(data);
+        await productService.create(payload);
       }
       navigate(`/${NAVIGATION_ROUTES.PRODUCTS}`);
     } catch (error) {
